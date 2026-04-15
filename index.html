@@ -1,35 +1,72 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Карты: ArcGIS и Mapbox</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Памятники Санкт-Петербурга: ArcGIS и Mapbox</title>
 <style>
-*{box-sizing:border-box;margin:0;padding:0}body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Oxygen,Ubuntu,sans-serif;background:#f0f2f5;color:#333;line-height:1.6}.container{max-width:1400px;margin:0 auto;padding:20px}header{text-align:center;padding:20px 0;border-bottom:1px solid #ddd;margin-bottom:30px}h1{font-size:28px;color:#2c3e50;margin-bottom:10px}.subtitle{color:#666;font-size:16px;margin-bottom:8px}.theme-info{background:#e8f4fd;padding:12px 20px;border-radius:8px;display:inline-block;font-size:14px}.map-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px}@media(max-width:1024px){.map-grid{grid-template-columns:1fr}}.map-card{background:#fff;border-radius:12px;box-shadow:0 2px 12px rgba(0,0,0,0.08);overflow:hidden;display:flex;flex-direction:column}.map-header{background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:#fff;padding:16px 24px;font-size:18px;font-weight:600;display:flex;align-items:center;gap:10px}.map-header.arcgis{background:linear-gradient(135deg,#007ac2 0%,#005a9c 100%)}.map-header.mapbox{background:linear-gradient(135deg,#356dd9 0%,#2c5bb8 100%)}.map-container{height:500px;width:100%;position:relative}.map-container iframe{width:100%;height:100%;border:0}footer{text-align:center;padding:30px 20px;color:#888;font-size:13px;border-top:1px solid #ddd;margin-top:40px}
+body{margin:20px;font-family:'Segoe UI',Tahoma,sans-serif;background:#f4f7f6}
+h1{text-align:center;color:#2c3e50}
+.subtitle{text-align:center;color:#7f8c8d;margin-bottom:30px}
+.map-row{display:flex;flex-wrap:wrap;justify-content:center;gap:20px}
+.map-card{flex:1 1 45%;min-width:400px;background:white;border-radius:12px;box-shadow:0 4px 12px rgba(0,0,0,0.1);overflow:hidden}
+.map-header{background:#2c3e50;color:white;padding:12px 20px;font-weight:bold}
+.map-container{height:500px;width:100%}
+.footer{text-align:center;margin-top:30px;color:#95a5a6;font-size:14px}
 </style>
+<script type="module" src="https://js.arcgis.com/5.0/embeddable-components/"></script>
+<script src='https://api.mapbox.com/mapbox-gl-js/v3.10.0/mapbox-gl.js'></script>
+<link href='https://api.mapbox.com/mapbox-gl-js/v3.10.0/mapbox-gl.css' rel='stylesheet'/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 </head>
 <body>
-<div class="container">
-<header>
-<h1>🌍 Тематические карты мира</h1>
-<p class="subtitle">Сравнение картографических сервисов: ArcGIS Online (слева) и Mapbox (справа)</p>
-<div class="theme-info"><strong>Тематический контент:</strong> на карте ArcGIS отмечены достопримечательности Санкт-Петербурга, на Mapbox — Москва и Санкт-Петербург</div>
-</header>
-<div class="map-grid">
+<h1>🗿 Памятники Санкт-Петербурга</h1>
+<div class="subtitle">
+<p>ArcGIS Online (слева) и Mapbox (справа) с пользовательским контентом</p>
+<p><strong>Данные из monuments.csv:</strong> {{num}} памятников загружено</p>
+<p id="csv-status" style="font-size:14px;color:#e67e22;"></p>
+</div>
+<div class="map-row">
 <div class="map-card">
-<div class="map-header arcgis">🌐 ArcGIS Online</div>
+<div class="map-header">🌐 ArcGIS Online</div>
 <div class="map-container">
-<iframe title="ArcGIS Map" src="https://www.arcgis.com/apps/webappviewer/index.html?id=4d1c5e5c8b8a4c9e9f3a2b1c0d8e7f6a&extent=30.0,59.5,30.6,60.2"></iframe>
+<arcgis-embedded-map style="height:100%;width:100%;" item-id="53dc5986e4c14d5a86de071362ef8cfc" theme="light" bookmarks-enabled heading-enabled legend-enabled information-enabled basemap-gallery-enabled time-zone-label-enabled center="30.340302662585874,59.94745486470762" scale="144447.638572" portal-url="https://www.arcgis.com"></arcgis-embedded-map>
 </div>
 </div>
 <div class="map-card">
-<div class="map-header mapbox">🗺️ Mapbox</div>
-<div class="map-container">
-<iframe title="Mapbox Map" src="https://api.mapbox.com/styles/v1/mapbox/streets-v12.html?title=true&access_token=pk.eyJ1IjoiZGVtbyIsImEiOiJjbGV4YW1wbGUifQ.example#11/55.7558/37.6173"></iframe>
+<div class="map-header">🗺️ Mapbox (monuments.csv)</div>
+<div id="mapbox-map" class="map-container"></div>
 </div>
 </div>
+<div class="footer">
+Сайт на GitHub Pages • CSV-файл monuments.csv загружен из репозитория
 </div>
-<footer>
-Сайт размещён на бесплатном хостинге GitHub Pages • Создано для учебного задания
-</footer>
-</div>
+<script>
+mapboxgl.accessToken='pk.eyJ1IjoicGVsbWVzaGVnIiwiYSI6ImNtbnpxeDF5czAwOWIycXM1NWh1MHkzcHYifQ.cgz83Y9GIjpCx1i5WrXmyQ';
+const map=new mapboxgl.Map({container:'mapbox-map',style:'mapbox://styles/mapbox/streets-v12',center:[30.3158,59.9391],zoom:10});
+map.addControl(new mapboxgl.NavigationControl());
+let loadedCount=0;
+function updateStatus(text){document.getElementById('csv-status').innerText=text;}
+map.on('load',()=>{
+updateStatus('Загрузка monuments.csv...');
+Papa.parse('monuments.csv',{download:true,header:true,skipEmptyLines:true,delimiter:";",encoding:'UTF-8',complete:function(results){
+const data=results.data;loadedCount=0;
+data.forEach(row=>{
+const lat=parseFloat(row.y);const lng=parseFloat(row.x);
+if(!isNaN(lat)&&!isNaN(lng)&&lat>50&&lat<70){
+const name=row['Наименование']||'Без названия';const dedicatedTo=row['Кому посвящен']||'';const description=row['Описание']||'';const year=row['Год открытия']||'—';
+let popupHtml=`<strong>${name}</strong><br>`;
+if(dedicatedTo)popupHtml+=`Посвящён: ${dedicatedTo}<br>`;
+if(year&&year!=='–'&&year!=='')popupHtml+=`Год: ${year}<br>`;
+if(description)popupHtml+=`<small>${description}</small>`;
+const color=(dedicatedTo&&dedicatedTo.includes('Пушкин'))?'#2ecc71':'#e67e22';
+new mapboxgl.Marker({color:color}).setLngLat([lng,lat]).setPopup(new mapboxgl.Popup().setHTML(popupHtml)).addTo(map);
+loadedCount++;
+}});
+updateStatus(`✅ Загружено ${loadedCount} памятников из monuments.csv`);
+document.querySelector('.subtitle p:first-child').innerHTML=`ArcGIS Online (слева) и Mapbox (справа) с пользовательским контентом. <strong>Данные из monuments.csv:</strong> ${loadedCount} памятников загружено.`;
+},error:function(err){console.error('Ошибка загрузки CSV:',err);updateStatus('❌ Ошибка загрузки monuments.csv. Проверьте наличие файла в репозитории.');}});
+});
+</script>
 </body>
 </html>
