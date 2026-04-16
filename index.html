@@ -45,8 +45,10 @@ if(dedicatedTo)popupHtml+=`Посвящён: ${dedicatedTo}<br>`;
 if(description)popupHtml+=`<small>${description}</small>`;
 const color=(dedicatedTo&&dedicatedTo.includes('Пушкин'))?'#2ecc71':'#e67e22';
 new mapboxgl.Marker({color:color}).setLngLat([lng,lat]).setPopup(new mapboxgl.Popup({maxWidth:'300px'}).setHTML(popupHtml)).addTo(map);
-}}});
-});
+ }
+      });
+    }
+  });
 });
 </script>
 </body>
